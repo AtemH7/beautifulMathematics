@@ -1,10 +1,14 @@
+let drawPolygonOutlinedFlag = true;
+let drawPolygonPointedFlag = true;
+let drawCircleFlag = true;
+
 function preload() {
   polygonNames = loadJSON('Polygons.json');
 }
 
 function calculateMaxVertices(width, height) {
   let radius = Math.min(width, height) / 2;
-  let desiredChordLength = 1;
+  let desiredChordLength = 2;
   return Math.floor(2 * Math.PI * radius / desiredChordLength);
 }
 
@@ -25,10 +29,35 @@ function displayPolygonInfo(p, numSides, polygonName) {
     p.text(infoText, 20, 100);
 }
 
-function resizeInterface(width,height) {      
+function resizeInterface(width, height) {      
     resizeCanvas(width, height);
-    sidesSlider.remove();
-    maxSides = calculateMaxVertices(width, height);
-    const sliderWidth = width - 40;
-    setupSlider(this, 20, 60, sliderWidth);
+    resizeSlider(width);
+    createButtons();
+    redraw();
+}
+
+function createButtons() {
+    const togglePolygonOutlinedButton = createButton('Toggle Polygon Outlined');
+    togglePolygonOutlinedButton.position(20, 120);
+    togglePolygonOutlinedButton.mousePressed(togglePolygonOutlined);
+
+    const togglePolygonPointedButton = createButton('Toggle Polygon Pointed');
+    togglePolygonPointedButton.position(20, 150);
+    togglePolygonPointedButton.mousePressed(togglePolygonPointed);
+    
+    const toggleCircleButton = createButton('Toggle "perfect" Circle');
+    toggleCircleButton.position(20, 180);
+    toggleCircleButton.mousePressed(toggleCircle);
+}
+
+function togglePolygonOutlined() {
+    drawPolygonOutlinedFlag = !drawPolygonOutlinedFlag;
+}
+
+function togglePolygonPointed() {
+    drawPolygonPointedFlag = !drawPolygonPointedFlag;
+}
+
+function toggleCircle() {
+    drawCircleFlag = !drawCircleFlag;
 }
