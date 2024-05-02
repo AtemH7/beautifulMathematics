@@ -1,0 +1,2 @@
+# beautifulMathematics
+Beautiful Mathematics Projects
