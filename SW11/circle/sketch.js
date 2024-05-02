@@ -23,6 +23,7 @@ function draw() {
     strokeWeight(strokeWeightValue);
 
     if (drawPolygonOutlinedFlag) {
+        fill(100);
         drawPolygonOutlined(this, width / 2, height / 2, Math.min(width, height) / 3, numSides);
     }
 
