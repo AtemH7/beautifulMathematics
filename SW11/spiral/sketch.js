@@ -25,11 +25,11 @@ function draw() {
     if (drawSpiralOutlinedFlag) {
         stroke(0);
         noFill();
-        drawSpiralOutlined(this, width / 2, (height+150) / 2, (1/spiralCountSlider.value())*(Math.min(width, height) / numSides), numSides);
+        drawSpiralOutlined(this, width / 2, (height+150) / 2, (1/spiralCountSlider.value())*(Math.min(width, height)*2/3 / numSides), numSides);
     }
 
     if (drawSpiralPointedFlag) {
-        drawSpiralPoints(this, width / 2, (height+150) / 2, (1/spiralCountSlider.value())*(Math.min(width, height) / numSides), numSides);
+        drawSpiralPoints(this, width / 2, (height+150) / 2, (1/spiralCountSlider.value())*(Math.min(width, height)*2/3 / numSides), numSides);
     }
     drawSliderValues(this, 20, 135);
 }
