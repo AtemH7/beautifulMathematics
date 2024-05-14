@@ -1,12 +1,17 @@
-function calculateEllipseVertices (xDimension, yDimension, detailLevel) {
+function calculateEllipseVertices (xDimension, yDimension, detailLevel, in3D = false) {
     let verticesEllipse = []
     let radiusX = xDimension/2;
     let radiusY = yDimension/2
+
     for (let i = 0; i < detailLevel; i++){
         let angle = (TWO_PI / detailLevel) * i;
         let x = radiusX * cos(angle);
         let y = radiusY * sin(angle);
-        verticesEllipse.push(createVector(x,y));
+        if (in3D) {
+            verticesEllipse.push(createVector(x,y,0));
+        } else {
+            verticesEllipse.push(createVector(x,y));
+        }
     }
     return verticesEllipse;
 }
@@ -19,114 +24,192 @@ function calculateEllipseVerticesCount(detailLevel) {
 function stripSequenceForFanDrawBottom(FanVertices) {
     let stripVertices = [];
     let n = FanVertices.length;
-    if(n===3){
-        stripVertices.push(FanVertices[1]);
-        stripVertices.push(FanVertices[2]);
-        stripVertices.push(FanVertices[0]);
-    }
-    else {
-        for(let i=0;i<n-1;i++){
-            if((i+2) % 2 === 0){
-                stripVertices.push(FanVertices[0]);
-            }
-            else {
-                if(i<3){
-                    stripVertices.push(FanVertices[1]);
-                }
-                else{
-                    stripVertices.push(FanVertices[i+1])
-                }
-            }
+
+    for(let i=0;i<n-1;i++){
+        if((i+2) % 2 === 0){
+            stripVertices.push(FanVertices[0]);
+        } else {
             stripVertices.push(FanVertices[i+1])
         }
+    stripVertices.push(FanVertices[i+1])       
     }
+    stripVertices.push(FanVertices[0]);
+    stripVertices.push(FanVertices[0]);
     return stripVertices
 }
 
 function stripSequenceForFanDrawTop(FanVertices){
     let stripVertices = [];
     let n = FanVertices.length;
-    if(n===3){
-        stripVertices.push(FanVertices[2]);
-        stripVertices.push(FanVertices[0]);
-        stripVertices.push(FanVertices[1]);
-    }
-    else {
-        for(let i=0;i<n-1;i++){
-            if((i+2) % 2 === 0){
-                stripVertices.push(FanVertices[0]);
-            }
-            else{
 
-                stripVertices.push(FanVertices[n-(i+2)]);
-            }
-            stripVertices.push(FanVertices[n-(i+2)]);
+    for(let i=0;i<n-1;i++){
+        if((i+2) % 2 === 0){
+            stripVertices.push(FanVertices[0]);
+        } else{
+            stripVertices.push(FanVertices[n-(i+1)]);
         }
+        stripVertices.push(FanVertices[n-(i+1)]);
     }
+    stripVertices.push(FanVertices[0]);
+    stripVertices.push(FanVertices[0]);
+    return stripVertices
+    
+}
+
+function stripSequenceForStripDrawSide(bottomVertices, topVertices){
+    let stripVertices = [];
+    let n = bottomVertices.length;
+
+    for(let i = 0; i < n; i++){
+            stripVertices.push(bottomVertices[i]);
+            stripVertices.push(topVertices[i]);
+        }
+    stripVertices.push(bottomVertices[0]);
+    stripVertices.push(topVertices[0]);
     return stripVertices
 }
 
-function calculateFrustumVertices(dimensionBottom, dimensionTop, height, detailLevel){
-    let bottomVertices = calculateEllipseVertices(dimensionBottom, dimensionBottom, detailLevel);
-    bottomVertices.forEach(vertex => {
-        vertex.z = -height / 2;
-    });
-
-    let topVertices = calculateEllipseVertices(dimensionTop, dimensionTop, detailLevel);
-    topVertices.forEach(vertex => {
-        vertex.z = height / 2;
-    });
-
-    let bottomVerticesSequenced = stripSequenceForFanDrawBottom(bottomVertices);
-    let topVerticesSequenced = stripSequenceForFanDrawTop(topVertices);
-    let sideVerticesSequenced = [];
-
-    for(let i = 0; i < bottomVertices.length; i++){
-        if(bottomVertices.length > 3){
-                sideVerticesSequenced.push(bottomVertices[i]);
-                sideVerticesSequenced.push(topVertices[i]);
-        }
-        else{
-            sideVerticesSequenced.push(topVertices[0]);
-            sideVerticesSequenced.push(bottomVertices[1]);
-            sideVerticesSequenced.push(topVertices[1]);
-            sideVerticesSequenced.push(bottomVertices[2]);
-        }
-    }
+function calculateTruncatedFrustumVertices(bottomShapeVertices, topShapeVertices){
+    let bottomVerticesSequenced = stripSequenceForFanDrawBottom(bottomShapeVertices);
+    let topVerticesSequenced = stripSequenceForFanDrawTop(topShapeVertices);
+    let sideVerticesSequenced = stripSequenceForStripDrawSide(bottomShapeVertices, topShapeVertices);
 
     let verticesFrustum = bottomVerticesSequenced.concat(sideVerticesSequenced, topVerticesSequenced);
 
     return verticesFrustum;
-} 
+}
 
-/* function drawZylinder (p, xCenter, yCenter, zCenter, angleX, angleY, angleZ, radiusZylinder ,heightZylinder, incrementZylinder){
-    const heightStep = heightZylinder/incrementZylinder;
-    
-    p.push();
-    p.translate(xCenter, yCenter, zCenter);
+function calculateFrustumVertices(bottomDimension, topDimension, height, detailLevel){
+    let verticesFrustum = [];
 
-    p.rotateX(radians(angleX));
-    p.rotateY(radians(angleY));
-    p.rotateZ(radians(angleZ));
+    let bottomShapeVertices = calculateEllipseVertices (bottomDimension, bottomDimension, detailLevel);
+    bottomShapeVertices.forEach(vertex => {
+        vertex.z = height/2;
+    });
 
-    for (let height = 0; height < heightZylinder; height += heightStep){
-        drawCircle(p, 0, 0, height-heightZylinder/2,     0,0,0,      radiusZylinder, incrementZylinder)
+    let topShapeVertices = calculateEllipseVertices (topDimension, topDimension, detailLevel);
+    topShapeVertices.forEach(vertex => {
+        vertex.z = -height/2;
+    });
+
+    verticesFrustum = calculateTruncatedFrustumVertices(bottomShapeVertices, topShapeVertices);
+
+    return verticesFrustum;
+}
+
+function calculateTorusVertices (radiusWhole, radiusTube, detailLevel) {
+    let verticesTorus =[];
+    let verticesCircle = calculateEllipseVertices (radiusTube, radiusTube, detailLevel, true);
+    let angleStep = TWO_PI/detailLevel;
+
+    verticesCircle.push({...verticesCircle[0]});
+
+    for (let i = 0; i < detailLevel; i++){
+        let angleCircle1 = angleStep * i;
+        let angleCircle2 = angleCircle1 + angleStep;
+
+        verticesCircle.forEach(vertex => {
+            let x1 = (vertex.x + radiusWhole) * cos(angleCircle1);
+            let y1 = vertex.y;
+            let z1 = (vertex.x + radiusWhole) * sin(angleCircle1);
+
+            let x2 = (vertex.x + radiusWhole) * cos(angleCircle2);
+            let y2 = vertex.y;
+            let z2 = (vertex.x + radiusWhole) * sin(angleCircle2);
+
+            verticesTorus.push(createVector(x1,y1,z1));
+            verticesTorus.push(createVector(x2,y2,z2));
+            
+        });
     }
-
-    p.pop();
+    return verticesTorus;
 }
 
-function drawCone (p, xPoint, yPoint, zPoint, angleX, angleY, angleZ, radiusCone, heightCone, incrementCone){
+function calculateSphereVertices(radius, detailLevel) {
+    let verticesSphere = [];
+    let angleStep = PI/detailLevel;
 
+    for (let i = 0; i <= detailLevel; i++) {
+        let angleCircle1 = angleStep * i;
+        let angleCircle2 = angleStep * (i+1);
+        let circleY1 = radius * cos(angleCircle1);
+        let circleY2 = radius * cos(angleCircle2);
+
+
+        let circleVertices1 = calculateEllipseVertices(radius*2 * sin(angleCircle1), radius*2 * sin(angleCircle1), detailLevel, true);
+        let circleVertices2 = calculateEllipseVertices(radius*2 * sin(angleCircle2), radius*2 * sin(angleCircle2), detailLevel, true);
+        
+        for(let j = 0; j <= circleVertices1.length; j++){
+            if(j === circleVertices1.length){
+                verticesSphere.push(createVector(circleVertices1[0].x, circleY1, circleVertices1[0].z));
+                verticesSphere.push(createVector(circleVertices2[0].x, circleY2, circleVertices2[0].z));
+            } else{
+            verticesSphere.push(createVector(circleVertices1[j].x, circleY1, circleVertices1[j].z));
+            verticesSphere.push(createVector(circleVertices2[j].x, circleY2, circleVertices2[j].z));
+            }
+        }
+    }
+    return verticesSphere;
 }
 
-function drawSphere (p, xCenter, yCenter, zCenter, angleX, angleY, angleZ, radiusSphere, incrementSphere){
+function calculateSphereVertices(radius, detailLevel) {
+    let verticesSphere = [];
+    let verticesCircle = calculateEllipseVertices (2*radius, 2*radius, detailLevel, true);
+    let angleStep = PI/detailLevel;
 
+    verticesCircle.push({...verticesCircle[0]});
+
+
+    for (let i = 0; i <= detailLevel; i++) {
+        let angleCircle1 = angleStep * i;
+        let angleCircle2 = angleStep * (i+1);
+
+        verticesCircle.forEach(vertex => {
+            let x1 = vertex.x * sin(angleCircle1);
+            let y1 = vertex.y * sin(angleCircle1);
+            let z1 = radius * cos(angleCircle1);
+
+            let x2 = vertex.x * sin(angleCircle2);
+            let y2 = vertex.y * sin(angleCircle2);
+            let z2 = radius * cos(angleCircle2);
+
+            verticesSphere.push(createVector(x1, y1, z1));
+            verticesSphere.push(createVector(x2, y2, z2));
+            });
+    }
+    return verticesSphere;
 }
 
-function drawTorus (p, xCenter, yCenter, zCenter, angleX, angleY, angleZ, radiusCircle, radiusTorus, incrementTorus){
 
+// SNAIL!!!!!
+
+/* function calculateSphereVertices (radius, detailLevel) {
+    let verticesSphere = [];
+    let verticesCircle = calculateEllipseVertices (radius, radius, detailLevel, true);
+    let angleStep = PI/detailLevel;
+
+    verticesCircle.push({...verticesCircle[0]});
+
+    for(let i = 0; i < detailLevel; i++){
+        let angleCircle1 = angleStep * i;
+        let angleCircle2 = angleCircle1 + angleStep;
+
+        verticesCircle.forEach(vertex => {
+            let x1 = vertex.x = radius * cos(angleCircle1) * sin(angleCircle1);
+            let y1 = vertex.y = radius * cos(angleCircle1);
+            let z1 = vertex.z = radius * sin(angleCircle1) * sin(angleCircle1);
+
+            let x2 = vertex.x = radius * cos(angleCircle2) * sin(angleCircle2);
+            let y2 = vertex.y = radius * cos(angleCircle2);
+            let z2 = vertex.z = radius * sin(angleCircle2) * sin(angleCircle2);
+
+            verticesSphere.push(createVector(x1,y1,z1));
+            verticesSphere.push(createVector(x2,y2,z2));
+        });
+    }
+    return verticesSphere;
 }
+
 
 function drawSnail (p, xStart, yStart, zStart, angleX, angleY, angleZ, radiusCircleLinearModifier, radiusCirclePowerModifier, radiusTorusLinearModifier, radiusTorusPowerModifier, incrementSnail){
 
