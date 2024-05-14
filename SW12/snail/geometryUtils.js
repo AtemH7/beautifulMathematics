@@ -127,33 +127,6 @@ function calculateTorusVertices (radiusWhole, radiusTube, detailLevel) {
 
 function calculateSphereVertices(radius, detailLevel) {
     let verticesSphere = [];
-    let angleStep = PI/detailLevel;
-
-    for (let i = 0; i <= detailLevel; i++) {
-        let angleCircle1 = angleStep * i;
-        let angleCircle2 = angleStep * (i+1);
-        let circleY1 = radius * cos(angleCircle1);
-        let circleY2 = radius * cos(angleCircle2);
-
-
-        let circleVertices1 = calculateEllipseVertices(radius*2 * sin(angleCircle1), radius*2 * sin(angleCircle1), detailLevel, true);
-        let circleVertices2 = calculateEllipseVertices(radius*2 * sin(angleCircle2), radius*2 * sin(angleCircle2), detailLevel, true);
-        
-        for(let j = 0; j <= circleVertices1.length; j++){
-            if(j === circleVertices1.length){
-                verticesSphere.push(createVector(circleVertices1[0].x, circleY1, circleVertices1[0].z));
-                verticesSphere.push(createVector(circleVertices2[0].x, circleY2, circleVertices2[0].z));
-            } else{
-            verticesSphere.push(createVector(circleVertices1[j].x, circleY1, circleVertices1[j].z));
-            verticesSphere.push(createVector(circleVertices2[j].x, circleY2, circleVertices2[j].z));
-            }
-        }
-    }
-    return verticesSphere;
-}
-
-function calculateSphereVertices(radius, detailLevel) {
-    let verticesSphere = [];
     let verticesCircle = calculateEllipseVertices (2*radius, 2*radius, detailLevel, true);
     let angleStep = PI/detailLevel;
 
@@ -180,6 +153,64 @@ function calculateSphereVertices(radius, detailLevel) {
     return verticesSphere;
 }
 
+function calculateSnailVertices(radiusWhole, radiusTube, height, detailLevel){
+    let verticesSnail =[];
+    let bottomVertices = [];
+    let topVertices = [];
+    let sideVerticesSequenced = [];
+    let verticesCircle = calculateEllipseVertices (radiusTube, radiusTube, detailLevel, true);
+    let angleStep = TWO_PI/detailLevel;
+
+    verticesCircle.push({...verticesCircle[0]});
+
+    let bottomVerticesSequenced = [];
+    let topVerticesSequenced= [];
+
+    for (let i = 0; i < detailLevel; i++){
+        let heightStep = height/detailLevel;
+        let angleCircle1 = angleStep * i;
+        let angleCircle2 = angleStep * (i+1);
+
+        if(i === 0){
+            verticesCircle.forEach(vertex => {
+                let x = (vertex.x + radiusWhole) * cos(angleCircle1);
+                let y = vertex.y + heightStep * i;
+                let z = (vertex.x + radiusWhole) * sin(angleCircle1);
+
+                bottomVertices.push(createVector(x,y,z));
+            });
+        }
+
+        verticesCircle.forEach(vertex => {
+            let x1 = (vertex.x + radiusWhole) * cos(angleCircle1);
+            let y1 = vertex.y + heightStep * i;
+            let z1 = (vertex.x + radiusWhole) * sin(angleCircle1);
+
+            let x2 = (vertex.x + radiusWhole) * cos(angleCircle2);
+            let y2 = vertex.y + heightStep * (i+1);
+            let z2 = (vertex.x + radiusWhole) * sin(angleCircle2);
+
+            sideVerticesSequenced.push(createVector(x1,y1,z1));
+            sideVerticesSequenced.push(createVector(x2,y2,z2));
+            
+        });
+
+        if(i === detailLevel-1){
+            verticesCircle.forEach(vertex => {
+                let x = (vertex.x + radiusWhole) * cos(angleCircle2);
+                let y = vertex.y + heightStep * (i+1);
+                let z = (vertex.x + radiusWhole) * sin(angleCircle2);
+
+                topVertices.push(createVector(x,y,z));
+            });
+        }
+    }
+    bottomVerticesSequenced = stripSequenceForFanDrawBottom(bottomVertices);
+    topVerticesSequenced = stripSequenceForFanDrawTop(topVertices);
+    verticesSnail = bottomVerticesSequenced.concat(sideVerticesSequenced, topVerticesSequenced);
+
+    return verticesSnail;
+}
 
 // SNAIL!!!!!
 
