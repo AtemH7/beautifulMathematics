@@ -78,8 +78,8 @@ function drawSphere(p, xCenter, yCenter, zCenter, angleX, angleY, angleZ, radius
     });
 }
 
-function drawSnail(p, xCenter, yCenter, zCenter, angleX, angleY, angleZ, radiusWhole, radiusTube, height, detailLevel){
-    let vertices = calculateSnailVertices(radiusWhole, radiusTube, height, detailLevel);
+function drawSnail(p, xCenter, yCenter, zCenter, angleX, angleY, angleZ, radiusWholeStart, radiusWholeEnd, radiusTubeStart, radiusTubeEnd, height, loops, detailLevel){
+    let vertices = calculateSnailVertices(radiusWholeStart, radiusWholeEnd, radiusTubeStart, radiusTubeEnd, height, loops, detailLevel);
 
     drawShape3D(p, xCenter, yCenter, zCenter, angleX, angleY, angleZ, (p) => {
         vertices.forEach(vertex => {

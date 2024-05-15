@@ -18,6 +18,6 @@ function draw() {
   // drawCylinder(this,   0,0,0,    0,0,0,    1, 1, 50)
 
   // drawTorus(this,   0,0,0,   0,0,0,   10,1,30)
-  drawSnail(this,   0,0,0,   0,0,0,   10,1,1,30)
+  drawSnail(this,   0,0,0,   0,0,0,   1,20,0.1,2,   5,3,30)
   // drawSphere(this,    0,0,0,    0,0,0,    1,60);
 }
