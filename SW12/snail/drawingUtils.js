@@ -26,10 +26,17 @@ function drawShape3D(p, xCenter, yCenter, zCenter, angleX, angleY, angleZ, drawC
     p.pop();
 }
 
+function adjustVerticesForDrawing(vertices, p, xCenter, yCenter, zCenter, angleX, angleY, angleZ){
+    let bounds = findScreenBounds(vertices, p, xCenter, yCenter, zCenter, angleX, angleY, angleZ);
+    let scale = calculateScaleToFit(bounds, p.width, p.height);
+    return scale;
+}
+
 function drawEllipse(p, xCenter, yCenter, zCenter, angleX, angleY, angleZ, xDimension, yDimension, detailLevel) {
     let vertices = calculateEllipseVertices(xDimension, yDimension, detailLevel);
+    vertices = stripSequenceForFanDrawBottom(vertices);
 
-    drawShape2D(p, xCenter, yCenter, zCenter, angleX, angleY, angleZ, (p) => {
+    drawShape3D(p, xCenter, yCenter, zCenter, angleX, angleY, angleZ, (p) => {
         vertices.forEach(vertex => {
             p.vertex(vertex.x, vertex.y, 0);
         });
